@@ -1,0 +1,120 @@
+[
+  {
+    "Constant": [],
+    "Variable": [],
+    "Method": [
+      {
+        "name": "start",
+        "desc": "Starts the automatic sync watchers",
+        "parameters": [],
+        "returns": [
+          "The SwarmSync object"
+        ],
+        "notes": [],
+        "signature": "SwarmSync:start()",
+        "type": "Method",
+        "def": "SwarmSync:start()"
+      },
+      {
+        "name": "stop",
+        "desc": "Stops the automatic sync watchers",
+        "parameters": [],
+        "returns": [
+          "The SwarmSync object"
+        ],
+        "notes": [],
+        "signature": "SwarmSync:stop()",
+        "type": "Method",
+        "def": "SwarmSync:stop()"
+      },
+      {
+        "name": "sync",
+        "desc": "Manually trigger a sync",
+        "parameters": [],
+        "returns": [
+          "The SwarmSync object"
+        ],
+        "notes": [],
+        "signature": "SwarmSync:sync()",
+        "type": "Method",
+        "def": "SwarmSync:sync()"
+      },
+      {
+        "name": "bindHotkeys",
+        "desc": "Binds hotkeys for the Spoon",
+        "parameters": [
+          "mapping - A table containing hotkey modifier/key details for the following items:",
+          " sync - Manually trigger a sync"
+        ],
+        "returns": [
+          "The SwarmSync object"
+        ],
+        "notes": [],
+        "signature": "SwarmSync:bindHotkeys(mapping)",
+        "type": "Method",
+        "def": "SwarmSync:bindHotkeys(mapping)"
+      }
+    ],
+    "Command": [],
+    "Constructor": [],
+    "Field": [],
+    "items": [
+      {
+        "name": "start",
+        "desc": "Starts the automatic sync watchers",
+        "parameters": [],
+        "returns": [
+          "The SwarmSync object"
+        ],
+        "notes": [],
+        "signature": "SwarmSync:start()",
+        "type": "Method",
+        "def": "SwarmSync:start()"
+      },
+      {
+        "name": "stop",
+        "desc": "Stops the automatic sync watchers",
+        "parameters": [],
+        "returns": [
+          "The SwarmSync object"
+        ],
+        "notes": [],
+        "signature": "SwarmSync:stop()",
+        "type": "Method",
+        "def": "SwarmSync:stop()"
+      },
+      {
+        "name": "sync",
+        "desc": "Manually trigger a sync",
+        "parameters": [],
+        "returns": [
+          "The SwarmSync object"
+        ],
+        "notes": [],
+        "signature": "SwarmSync:sync()",
+        "type": "Method",
+        "def": "SwarmSync:sync()"
+      },
+      {
+        "name": "bindHotkeys",
+        "desc": "Binds hotkeys for the Spoon",
+        "parameters": [
+          "mapping - A table containing hotkey modifier/key details for the following items:",
+          " sync - Manually trigger a sync"
+        ],
+        "returns": [
+          "The SwarmSync object"
+        ],
+        "notes": [],
+        "signature": "SwarmSync:bindHotkeys(mapping)",
+        "type": "Method",
+        "def": "SwarmSync:bindHotkeys(mapping)"
+      }
+    ],
+    "name": "SwarmSync",
+    "desc": "Automatically sync Swarm checkins to Day One journal",
+    "type": "Module",
+    "Deprecated": [],
+    "Function": []
+  }
+]

@@ -1,0 +1,9 @@
+node_modules/
+.env
+.DS_Store
+*.log
+logs/
+temp-photos/
+state.json
+.sync-state.json
+test-checkin*.json

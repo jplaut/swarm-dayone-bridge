@@ -1,0 +1,31 @@
+{
+  "name": "swarm-to-dayone",
+  "version": "1.0.0",
+  "description": "Automatically create Day One journal entries from Swarm checkins",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "sync": "node src/sync.js",
+    "sync-all": "node src/sync-all.js",
+    "retry-failed": "node src/retry-failed.js",
+    "get-token": "node src/get-token.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "swarm",
+    "dayone",
+    "journal",
+    "checkin",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT"
+}
