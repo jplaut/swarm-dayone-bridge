@@ -150,16 +150,16 @@ The easiest way to set up automatic syncing using a Hammerspoon Spoon:
    ```lua
    -- Load SwarmSync Spoon
    hs.loadSpoon("SwarmSync")
-   
+
    -- Configure paths
    spoon.SwarmSync.projectPath = "/Users/YOUR_USERNAME/dayone-swarm-bridge"
    spoon.SwarmSync.nodePath = "/usr/local/bin/node"  -- or /opt/homebrew/bin/node
-   
+
    -- Optional: Bind a hotkey for manual sync (Cmd+Shift+S)
    spoon.SwarmSync:bindHotkeys({
      sync = {{"cmd", "shift"}, "S"}
    })
-   
+
    -- Start automatic syncing
    spoon.SwarmSync:start()
    ```

@@ -30,6 +30,7 @@ obj.cooldown = 300  -- Cooldown period in seconds (5 minutes)
 
 -- Internal state
 obj.lastSyncTime = 0
+obj.syncInProgress = false
 obj.reachabilityWatcher = nil
 obj.caffeineWatcher = nil
 obj.wasReachable = false
@@ -68,15 +69,15 @@ function obj:start()
 
     -- Start network reachability watcher
     self:startReachabilityWatcher()
-    
+
     -- Start wake from sleep watcher
     self:startCaffeineWatcher()
-    
+
     print("SwarmSync: Started")
     print("SwarmSync: Sync will run when:")
     print("  - Connecting to network (WiFi/Ethernet)")
     print("  - Waking from sleep")
-    
+
     return self
 end
 
@@ -94,12 +95,12 @@ function obj:stop()
         self.reachabilityWatcher:stop()
         self.reachabilityWatcher = nil
     end
-    
+
     if self.caffeineWatcher then
         self.caffeineWatcher:stop()
         self.caffeineWatcher = nil
     end
-    
+
     print("SwarmSync: Stopped")
     return self
 end
@@ -140,17 +141,23 @@ end
 
 function obj:runSync()
     local currentTime = os.time()
-    
+
+    -- Check if a sync is already in progress
+    if self.syncInProgress then
+        print("SwarmSync: Sync skipped (already in progress)")
+        return
+    end
+
     -- Check if we're within cooldown period
     if currentTime - self.lastSyncTime < self.cooldown then
         print("SwarmSync: Sync skipped (cooldown period)")
         return
     end
-    
-    self.lastSyncTime = currentTime
-    
+
+    -- Mark sync as in progress
+    self.syncInProgress = true
     print("SwarmSync: Running sync...")
-    
+
     local logFile = self.projectPath .. "/logs/sync.log"
     local command = string.format(
         'export PATH="/usr/local/bin:$PATH" && cd "%s" && "%s" src/sync.js >> "%s" 2>&1',
@@ -158,9 +165,14 @@ function obj:runSync()
         self.nodePath,
         logFile
     )
-    
+
     hs.task.new("/bin/bash", function(exitCode, stdOut, stdErr)
+        -- Clear the in-progress flag
+        obj.syncInProgress = false
+
         if exitCode == 0 then
+            -- Only update lastSyncTime on successful sync
+            obj.lastSyncTime = currentTime
             print("SwarmSync: Sync completed successfully")
             hs.notify.new({
                 title = "Swarm Sync",
@@ -180,20 +192,20 @@ function obj:startReachabilityWatcher()
     local function reachabilityCallback(self_watcher, flags)
         local reachableFlag = hs.network.reachability.flags.reachable
         local isReachable = (flags & reachableFlag) > 0
-        
+
         -- Check if we're on cellular (if the flag exists)
         local isWWAN = false
         if hs.network.reachability.flags.isWWAN then
             isWWAN = (flags & hs.network.reachability.flags.isWWAN) > 0
         end
-        
+
         -- We're interested in WiFi/Ethernet connections (not cellular)
         local isConnected = isReachable and not isWWAN
-        
+
         if isConnected and not obj.wasReachable then
             -- Just connected to network
             print("SwarmSync: Network connected (WiFi/Ethernet)")
-            
+
             -- Wait 5 seconds for network to stabilize
             hs.timer.doAfter(5, function()
                 obj:runSync()
@@ -202,10 +214,10 @@ function obj:startReachabilityWatcher()
             -- Disconnected from network
             print("SwarmSync: Network disconnected")
         end
-        
+
         obj.wasReachable = isConnected
     end
-    
+
     self.reachabilityWatcher = hs.network.reachability.internet()
     self.reachabilityWatcher:setCallback(reachabilityCallback)
     self.reachabilityWatcher:start()
@@ -215,14 +227,14 @@ function obj:startCaffeineWatcher()
     local function caffeineCallback(eventType)
         if eventType == hs.caffeinate.watcher.systemDidWake then
             print("SwarmSync: System woke from sleep")
-            
+
             -- Wait 10 seconds for network to be ready
             hs.timer.doAfter(10, function()
                 obj:runSync()
             end)
         end
     end
-    
+
     self.caffeineWatcher = hs.caffeinate.watcher.new(caffeineCallback)
     self.caffeineWatcher:start()
 end

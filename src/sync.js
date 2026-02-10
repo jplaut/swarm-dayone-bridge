@@ -79,12 +79,13 @@ class SwarmSync {
       return;
     }
 
-    console.log(`Found ${checkins.length} checkin${checkins.length > 1 ? 's' : ''}\n`);
+    console.log(`Found ${checkins.length} checkin${checkins.length > 1 ? 's' : ''} since last sync\n`);
 
     // Sort by date (oldest first) so entries are created in chronological order
     checkins.sort((a, b) => a.createdAt - b.createdAt);
 
     let newCount = 0;
+    let skippedCount = 0;
     let errorCount = 0;
 
     for (const checkin of checkins) {
@@ -92,6 +93,7 @@ class SwarmSync {
 
       // Skip if this is the last checkin we already processed
       if (this.state.lastCheckinId === checkinId) {
+        skippedCount++;
         continue;
       }
 
@@ -131,8 +133,14 @@ class SwarmSync {
     }
 
     console.log('\n--- Sync Complete ---');
-    console.log(`Checkins in this sync: ${checkins.length}`);
-    console.log(`New entries created: ${newCount}`);
+    if (newCount === 0 && skippedCount > 0) {
+      console.log(`No new checkins since last sync (${skippedCount} already processed)`);
+    } else {
+      console.log(`New entries created: ${newCount}`);
+      if (skippedCount > 0) {
+        console.log(`Already processed: ${skippedCount}`);
+      }
+    }
     if (errorCount > 0) {
       console.log(`Errors: ${errorCount}`);
       console.log(`Failed checkins tracked: ${this.state.failedCheckins.length}`);
