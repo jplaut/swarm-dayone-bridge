@@ -228,9 +228,29 @@ function obj:startCaffeineWatcher()
         if eventType == hs.caffeinate.watcher.systemDidWake then
             print("SwarmSync: System woke from sleep")
 
-            -- Wait 10 seconds for network to be ready
+            -- Wait 10 seconds for network to be ready, then check if connected
             hs.timer.doAfter(10, function()
-                obj:runSync()
+                -- Check if we have network connectivity
+                local reachability = hs.network.reachability.internet()
+                local flags = reachability:status()
+                local reachableFlag = hs.network.reachability.flags.reachable
+                local isReachable = (flags & reachableFlag) > 0
+
+                -- Check if we're on cellular (if the flag exists)
+                local isWWAN = false
+                if hs.network.reachability.flags.isWWAN then
+                    isWWAN = (flags & hs.network.reachability.flags.isWWAN) > 0
+                end
+
+                -- We're interested in WiFi/Ethernet connections (not cellular)
+                local isConnected = isReachable and not isWWAN
+
+                if isConnected then
+                    print("SwarmSync: Network available after wake, running sync")
+                    obj:runSync()
+                else
+                    print("SwarmSync: No network available after wake, skipping sync")
+                end
             end)
         end
     end
