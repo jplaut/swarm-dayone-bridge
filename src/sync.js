@@ -119,6 +119,9 @@ class SwarmSync {
         errorCount++;
 
         // Track failed checkin for retry
+        if (!this.state.failedCheckins) {
+          this.state.failedCheckins = [];
+        }
         if (!this.state.failedCheckins.find(f => f.id === checkinId)) {
           this.state.failedCheckins.push({
             id: checkinId,

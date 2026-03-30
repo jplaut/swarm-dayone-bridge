@@ -58,10 +58,22 @@ export class DayOneClient {
 
       if (stderr) {
         console.error('Day One CLI stderr:', stderr);
+
+        // Check for database upgrade error
+        if (stderr.includes('The model used to open the store is incompatible') ||
+            stderr.includes('Day One database needs to be upgraded')) {
+          throw new Error('Day One database needs to be upgraded. Please launch Day One to upgrade the database, then try again.');
+        }
       }
 
       return { success: true, output: stdout };
     } catch (error) {
+      // Check if this is a database upgrade error
+      if (error.stderr && (error.stderr.includes('The model used to open the store is incompatible') ||
+          error.stderr.includes('CoreData: error'))) {
+        throw new Error('Day One database needs to be upgraded. Please launch Day One to upgrade the database, then try again.');
+      }
+
       console.error('Error creating Day One entry:', error);
       throw error;
     }

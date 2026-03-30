@@ -159,12 +159,22 @@ function obj:runSync()
     print("SwarmSync: Running sync...")
 
     local logFile = self.projectPath .. "/logs/sync.log"
+
+    -- Rotate log file if it exists and is too large (keep last 500 lines)
+    local rotateCommand = string.format(
+        'if [ -f "%s" ]; then tail -500 "%s" > "%s.tmp" && mv "%s.tmp" "%s"; fi',
+        logFile, logFile, logFile, logFile, logFile
+    )
+
     local command = string.format(
-        'export PATH="/usr/local/bin:$PATH" && cd "%s" && "%s" src/sync.js >> "%s" 2>&1',
+        'export PATH="/usr/local/bin:$PATH" && %s && cd "%s" && "%s" src/sync.js 2>&1 | tee -a "%s"',
+        rotateCommand,
         self.projectPath,
         self.nodePath,
         logFile
     )
+
+    print("SwarmSync: Executing command: " .. command)
 
     hs.task.new("/bin/bash", function(exitCode, stdOut, stdErr)
         -- Clear the in-progress flag
@@ -174,15 +184,24 @@ function obj:runSync()
             -- Only update lastSyncTime on successful sync
             obj.lastSyncTime = currentTime
             print("SwarmSync: Sync completed successfully")
+            if stdOut and stdOut ~= "" then
+                print("SwarmSync: Output:\n" .. stdOut)
+            end
             hs.notify.new({
                 title = "Swarm Sync",
                 informativeText = "Checkins synced to Day One"
             }):send()
         else
             print("SwarmSync: Sync failed with exit code: " .. exitCode)
+            if stdOut and stdOut ~= "" then
+                print("SwarmSync: stdout:\n" .. stdOut)
+            end
+            if stdErr and stdErr ~= "" then
+                print("SwarmSync: stderr:\n" .. stdErr)
+            end
             hs.notify.new({
                 title = "Swarm Sync Failed",
-                informativeText = "Check logs for details"
+                informativeText = "Check console for error details"
             }):send()
         end
     end, {"-c", command}):start()
