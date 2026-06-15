@@ -38,9 +38,29 @@ export async function saveState(state) {
   }
 }
 
+function formatVenueLocalTime(epochSeconds, offsetMinutes) {
+  const pad = n => String(n).padStart(2, '0');
+  const local = new Date((epochSeconds + offsetMinutes * 60) * 1000);
+  const y = local.getUTCFullYear();
+  const mo = pad(local.getUTCMonth() + 1);
+  const d = pad(local.getUTCDate());
+  const h = pad(local.getUTCHours());
+  const mi = pad(local.getUTCMinutes());
+  const s = pad(local.getUTCSeconds());
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const abs = Math.abs(offsetMinutes);
+  const oh = pad(Math.floor(abs / 60));
+  const om = pad(abs % 60);
+  return {
+    isoWithOffset: `${y}-${mo}-${d}T${h}:${mi}:${s}${sign}${oh}:${om}`,
+    display: `${y}-${mo}-${d} ${h}:${mi}:${s} (UTC${sign}${oh}:${om})`
+  };
+}
+
 export async function formatCheckinForDayOne(checkin) {
   const venue = checkin.venue;
-  const createdAt = new Date(checkin.createdAt * 1000);
+  const offsetMinutes = typeof checkin.timeZoneOffset === 'number' ? checkin.timeZoneOffset : 0;
+  const { isoWithOffset, display: localTimeDisplay } = formatVenueLocalTime(checkin.createdAt, offsetMinutes);
 
   let text = `# ${venue.name}\n\n`;
 
@@ -105,7 +125,7 @@ export async function formatCheckinForDayOne(checkin) {
     }
   }
 
-  text += `🕐 ${createdAt.toLocaleString()}\n\n`;
+  text += `🕐 ${localTimeDisplay}\n\n`;
   text += `🔗 **Checkin:** https://www.swarmapp.com/c/${checkin.id}\n`;
   text += `📍 **Place:** https://foursquare.com/v/${venue.id}\n`;
 
@@ -116,7 +136,7 @@ export async function formatCheckinForDayOne(checkin) {
 
   return {
     text,
-    date: createdAt,
+    date: isoWithOffset,
     latitude: venue.location.lat,
     longitude: venue.location.lng,
     photos: photoFiles,

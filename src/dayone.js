@@ -31,7 +31,9 @@ export class DayOneClient {
     }
 
     if (date) {
-      const isoDate = date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+      const isoDate = typeof date === 'string'
+        ? date
+        : date.toISOString().replace(/\.\d{3}Z$/, 'Z');
       args.push(`--isoDate="${isoDate}"`);
     }
 
