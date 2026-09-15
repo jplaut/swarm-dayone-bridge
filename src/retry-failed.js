@@ -97,13 +97,19 @@ class RetryFailed {
     if (stillFailedCount > 0) {
       console.log(`\n⚠️  ${stillFailedCount} checkin${stillFailedCount > 1 ? 's' : ''} still failed. Run this script again to retry.`);
     }
+
+    return stillFailedCount;
   }
 }
 
 async function main() {
   try {
     const retry = new RetryFailed();
-    await retry.retryFailed();
+    const stillFailedCount = await retry.retryFailed();
+
+    if (stillFailedCount > 0) {
+      process.exit(1);
+    }
   } catch (error) {
     console.error('\n❌ Retry failed:', error.message);
     process.exit(1);

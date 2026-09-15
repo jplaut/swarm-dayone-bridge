@@ -148,13 +148,23 @@ class SwarmSync {
       console.log(`Errors: ${errorCount}`);
       console.log(`Failed checkins tracked: ${this.state.failedCheckins.length}`);
     }
+
+    return errorCount;
   }
 }
 
 async function main() {
   try {
     const sync = new SwarmSync();
-    await sync.syncCheckins();
+    const errorCount = await sync.syncCheckins();
+
+    // Exit non-zero so the caller (Hammerspoon, cron) reports a failure instead of
+    // a green notification. Individual entry errors are caught per-checkin above,
+    // which previously let a fully broken sync look successful.
+    if (errorCount > 0) {
+      console.error(`\n❌ Sync finished with ${errorCount} failed checkin${errorCount > 1 ? 's' : ''}.`);
+      process.exit(1);
+    }
   } catch (error) {
     console.error('\n❌ Sync failed:', error.message);
     process.exit(1);

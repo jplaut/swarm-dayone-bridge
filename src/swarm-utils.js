@@ -52,7 +52,9 @@ function formatVenueLocalTime(epochSeconds, offsetMinutes) {
   const oh = pad(Math.floor(abs / 60));
   const om = pad(abs % 60);
   return {
-    isoWithOffset: `${y}-${mo}-${d}T${h}:${mi}:${s}${sign}${oh}:${om}`,
+    // The CLI pins the instant in UTC; --time-zone decides how it is displayed.
+    utcIso: new Date(epochSeconds * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    timeZone: `GMT${sign}${oh}${om}`,
     display: `${y}-${mo}-${d} ${h}:${mi}:${s} (UTC${sign}${oh}:${om})`
   };
 }
@@ -60,7 +62,7 @@ function formatVenueLocalTime(epochSeconds, offsetMinutes) {
 export async function formatCheckinForDayOne(checkin) {
   const venue = checkin.venue;
   const offsetMinutes = typeof checkin.timeZoneOffset === 'number' ? checkin.timeZoneOffset : 0;
-  const { isoWithOffset, display: localTimeDisplay } = formatVenueLocalTime(checkin.createdAt, offsetMinutes);
+  const { utcIso, timeZone, display: localTimeDisplay } = formatVenueLocalTime(checkin.createdAt, offsetMinutes);
 
   let text = `# ${venue.name}\n\n`;
 
@@ -136,7 +138,8 @@ export async function formatCheckinForDayOne(checkin) {
 
   return {
     text,
-    date: isoWithOffset,
+    date: utcIso,
+    timeZone,
     latitude: venue.location.lat,
     longitude: venue.location.lng,
     photos: photoFiles,

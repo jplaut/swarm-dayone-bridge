@@ -3,6 +3,15 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+// The Day One CLI only accepts --isoDate in UTC with a literal Z:
+//   "Format: yyyy-mm-ddThh:mm:ssZ. Always interprets the time in the UTC time zone."
+// Anything else (notably a numeric offset like -07:00) is rejected with exit code 64.
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+
+// --time-zone accepts an IANA name or a GMT offset. Foundation parses "GMT-0400"
+// as UTC-4, so the sign matches the offset rather than being POSIX-inverted.
+const TIME_ZONE_PATTERN = /^(GMT[+-]\d{4}|[A-Za-z_]+\/[A-Za-z_+-]+)$/;
+
 export class DayOneClient {
   constructor(journalName = null) {
     this.journalName = journalName;
@@ -17,6 +26,7 @@ export class DayOneClient {
     const {
       text,
       date,
+      timeZone,
       latitude,
       longitude,
       tags = [],
@@ -34,7 +44,26 @@ export class DayOneClient {
       const isoDate = typeof date === 'string'
         ? date
         : date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+
+      if (!ISO_DATE_PATTERN.test(isoDate)) {
+        throw new Error(
+          `Invalid isoDate "${isoDate}". The Day One CLI only accepts UTC in the form ` +
+          `yyyy-mm-ddThh:mm:ssZ. Use --time-zone to control how the entry is displayed.`
+        );
+      }
+
       args.push(`--isoDate="${isoDate}"`);
+    }
+
+    if (timeZone) {
+      if (!TIME_ZONE_PATTERN.test(timeZone)) {
+        throw new Error(
+          `Invalid timeZone "${timeZone}". Expected a GMT offset such as GMT-0700 ` +
+          `or an IANA name such as America/Los_Angeles.`
+        );
+      }
+
+      args.push(`--time-zone "${timeZone}"`);
     }
 
     if (latitude && longitude) {
