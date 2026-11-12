@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { access, constants } from 'fs/promises';
 
 const execAsync = promisify(exec);
 
@@ -7,6 +8,11 @@ const execAsync = promisify(exec);
 //   "Format: yyyy-mm-ddThh:mm:ssZ. Always interprets the time in the UTC time zone."
 // Anything else (notably a numeric offset like -07:00) is rejected with exit code 64.
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+
+// Call the CLI bundled with the Mac app by absolute path. A bare `dayone` on PATH can
+// resolve to the unrelated @dayone/cli npm package, which has a different interface
+// (no `new` command, no --journal) and fails every entry.
+const DAYONE_CLI_PATH = process.env.DAYONE_CLI_PATH || '/Applications/Day One.app/Contents/MacOS/dayone';
 
 // --time-zone accepts an IANA name or a GMT offset. Foundation parses "GMT-0400"
 // as UTC-4, so the sign matches the offset rather than being POSIX-inverted.
@@ -87,7 +93,7 @@ export class DayOneClient {
     args.push('--');
     args.push('new');
 
-    const command = `printf "%b" "${this.escapeText(text)}" | dayone ${args.join(' ')}`;
+    const command = `printf "%b" "${this.escapeText(text)}" | "${DAYONE_CLI_PATH}" ${args.join(' ')}`;
 
     try {
       const { stdout, stderr } = await execAsync(command);
@@ -169,7 +175,7 @@ export class DayOneClient {
 
   async checkCLIAvailable() {
     try {
-      await execAsync('which dayone');
+      await access(DAYONE_CLI_PATH, constants.X_OK);
       return true;
     } catch (error) {
       return false;
